@@ -1,0 +1,35 @@
+curl --json '{
+  "name": "test-job-34",
+  "cron_expr": "@every 30s",
+  "type": "shell",
+  "command": "python3 /Users/uppuluridivyanthsatya/Desktop/Go/go-job-scheduler/cmd/script.py",
+  "retries": 0
+}' http://localhost:3000/jobs/
+
+curl --json '{
+  "name": "test-job-323",
+  "cron_expr": "@every 5s",
+  "type": "http",
+  "command": "https://google.com/",
+  "retries": 0
+}' http://localhost:3000/jobs/
+
+
+curl --json '{
+    "name": "ping-health-check",
+    "cron_expr": "@every 2m",
+    "type": "shell",
+    "command": "ping -c 3 google.com",
+    "retries": 2
+}' http://localhost:3000/jobs/
+
+curl -X PUT http://localhost:3000/update/test-job-34 -d '{
+    "name": "test-job-34",
+  "cron_expr": "@every 30s",
+  "type": "shell",
+  "command": "python3 /Users/uppuluridivyanthsatya/Desktop/Go/go-job-scheduler/cmd/script.py",
+  "retries": 0
+  }'
+
+curl -X POST http://localhost:3000/delete/test-job-34
+
