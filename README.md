@@ -1,70 +1,89 @@
 # ⏰ Go Job Scheduler
 
-A cloud-native, backend-only job scheduler written in Go. It supports scheduling shell and HTTP tasks using cron expressions and is designed for simplicity, flexibility, and easy extensibility.
+Go Job Scheduler is a cloud-native, backend-only job scheduler written in Go. It allows you to schedule Shell, HTTP, and AWS Lambda tasks using cron expressions. Designed for simplicity, flexibility, and easy extensibility, it's perfect for managing your automated tasks.
 
 ---
 
 ## 🚀 Features
 
-- **Schedule shell or HTTP jobs** using cron expressions
-- **Retry failed jobs** a configurable number of times
-- **Lightweight, serverless-ready architecture**
-- **RESTful API** to manage job lifecycle (add, update, delete)
-- **Easily extensible** to add persistence or additional job types
+- **Schedule Diverse Job Types:** Easily schedule Shell commands, HTTP requests, or AWS Lambda functions using standard cron expressions (e.g., `@every 30s`, `@hourly`, `@daily`).
+- **Configurable Retries:** Set up automatic retries for failed jobs to ensure task completion.
+- **Job Persistence:** All job configurations are stored and managed using PostgreSQL, ensuring data integrity and recovery.
+- **RESTful API:** A comprehensive API allows you to programmatically manage the entire job lifecycle, including adding, updating, and deleting jobs.
+- **Lightweight & Serverless-Ready:** Designed with a minimal footprint, making it suitable for serverless deployments and efficient resource usage.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Language:** Go
+- **Database:** PostgreSQL
+- **Cloud Integration:** AWS Lambda (via SDK)
+- **Supported Job Types:** Shell, HTTP, Lambda
 - **Architecture:** Serverless-ready, modular backend
-- **Job Types:** Shell & HTTP
 
 ---
 
 ## 📦 Installation
 
-### 1. Clone the repository
+To get started with Go Job Scheduler, follow these steps:
 
-```bash
-git clone https://github.com/Divyanth2468/go-job-scheduler.git
-cd go-job-scheduler
-```
+1.  **Clone the repository:**
 
-### 2. Run the Scheduler
+    ```bash
+    git clone https://github.com/Divyanth2468/go-job-scheduler.git
+    cd go-job-scheduler
+    ```
 
-```bash
-go run main.go
-```
+2.  **Run the Scheduler:**
 
-✅ Ensure **Go** is installed and available in your system path (`go version` to verify).
+    ```bash
+    go run main.go
+    ```
+
+    **Prerequisites:**
+
+    - Ensure **Go** and **PostgreSQL** are correctly set up on your system.
+    - Update your **`.env`** file with your PostgreSQL database credentials and AWS region (if you plan to use Lambda jobs).
 
 ---
 
 ## 📁 Project Structure
 
-- `main.go` – entry point for the server
-- `job/` – job definitions and structs
-- `scheduler/` – cron logic and cron job additions
-- `api/` – HTTP handlers and routes
-- `runner/` – sample curl commands and executable jobs
+The project is organized into logical modules for easy navigation and understanding:
+
+- `main.go`: The primary entry point for the scheduler server.
+- `api/`: Contains all HTTP handlers and defines API routes.
+- `job/`: Defines job structures and types.
+- `scheduler/`: Manages cron logic and job scheduling.
+- `runner/`: Executes different job types (Shell, HTTP, Lambda), also has some example request commands.
+- `database/`: Handles PostgreSQL connections and database queries.
+- `logs/`: Provides logging utilities and other helper functions.
 
 ---
 
 ## 🔧 Usage
 
-Once the scheduler is running:
+Once the scheduler is running (typically on port `3000`), you can interact with it using its RESTful API:
 
-- Use `POST /jobs/` to add jobs
-- Use `POST /alljobs/` to view all jobs
-- Use `PUT /update/{job-name}` to modify jobs
-- Use `POST /delete/{job-name}` to remove jobs
+- **Add a new job:**
+  `POST /jobs/`
+
+- **View all jobs:**
+  `POST /alljobs/`
+
+- **Modify an existing job:**
+  `PUT /update/{job-name}`
+
+- **Remove a job:**
+  `POST /delete/{job-name}`
+
+**Important Notes:**
+
+- The default API port is `3000`.
+- **Shell jobs** execute within the host operating system environment where the scheduler is running.
+- **HTTP jobs** require a reachable URL.
+- **Lambda jobs** need a valid AWS Lambda ARN and a JSON-formatted command as their payload.
+- **Sample commands** are available in runner folder
 
 ---
-
-## 📌 Notes
-
-- Default API port: `3000`
-- Accepts cron expressions like `@every 30s`, `@hourly`, `@daily`
-- Shell commands run on the host OS environment
-- HTTP jobs expect a valid reachable URL
