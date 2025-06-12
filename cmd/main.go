@@ -2,15 +2,15 @@ package main
 
 import (
 	endpoints "github.com/Divyanth2468/go-job-scheduler/internal/api"
+	database "github.com/Divyanth2468/go-job-scheduler/internal/data"
 	"github.com/Divyanth2468/go-job-scheduler/internal/jobs"
 	"github.com/Divyanth2468/go-job-scheduler/internal/logs"
 	"github.com/Divyanth2468/go-job-scheduler/internal/scheduler"
 )
 
 func main() {
-	jobs.Init()
+	database.Init()
 	scheduler.Init()
-	scheduler.LogFileSetup()
 	savedJobs, err := jobs.LoadJobs()
 
 	if err != nil {
