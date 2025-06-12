@@ -6,74 +6,66 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
+	"time"
 
+	database "github.com/Divyanth2468/go-job-scheduler/internal/data"
 	"github.com/Divyanth2468/go-job-scheduler/internal/logs"
+	"github.com/google/uuid"
 )
 
 type JobRequest struct {
-	Name     string `json:"name"`
-	CronExpr string `json:"cron_expr"`
-	Type     string `json:"type"`
-	Command  string `json:"command"`
-	Retries  int    `json:"retries"`
+	ID        uuid.UUID
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	CronExpr  string `json:"cron_expr"`
+	LambdaArn string `json:"lambda_arn"`
+	Command   string `json:"command"`
+	Retries   int    `json:"retries"`
+	CreatedAt time.Time
 }
 
-// Get current directory and move one level up
-var logFilePath string
 var Jobs []JobRequest
-
-func Init() {
-	wd, err := os.Getwd()
-
-	if err != nil {
-		log.Fatal("Unable to get working directory:", err)
-	}
-	parentDir := filepath.Dir(wd)
-	logFilePath = filepath.Join(parentDir, "internal", "data", "jobs.json")
-}
 
 func GetJobs(w http.ResponseWriter, r *http.Request) (JobRequest, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		http.Error(w, "Error reading request body\n", http.StatusBadRequest)
 		return JobRequest{}, err
 
 	}
 	var jobdata JobRequest
 	err = json.Unmarshal(body, &jobdata)
 	if err != nil {
-		http.Error(w, "Error Unmarshalling JSON", http.StatusBadRequest)
+		http.Error(w, "Error Unmarshalling JSON\n", http.StatusBadRequest)
 		return JobRequest{}, err
 	}
 
 	// Now the JSON data is in jobdata
-	log.Println("Recieved data: ", jobdata)
+	logs.LogAndPrint("Recieved data: %v\n", jobdata)
 
-	_, flag := JobExists(jobdata)
+	_, flag := JobExists(jobdata.Name)
 
 	if flag == 1 {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(fmt.Sprintf("Job %s exists", jobdata.Name)))
-		logs.LogAndPrint("Job %s already exists", jobdata.Name)
+		logs.LogAndPrint("Job %s already exists\n", jobdata.Name)
 	}
 
 	if flag == 0 {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(fmt.Sprintf("Job %s added successfully", jobdata.Name)))
-		logs.LogAndPrint("Job %s added successfully", jobdata.Name)
+		logs.LogAndPrint("Job %s added successfully\n", jobdata.Name)
 	}
 
 	return jobdata, nil
 }
 
-func JobExists(jobdata JobRequest) (JobRequest, int) {
+func JobExists(jobname string) (JobRequest, int) {
 	var j JobRequest
 	flag := 0
 	if len(Jobs) != 0 {
 		for _, job := range Jobs {
-			if job.Name == jobdata.Name {
+			if job.Name == jobname {
 				j = job
 				flag = 1
 			}
@@ -83,54 +75,87 @@ func JobExists(jobdata JobRequest) (JobRequest, int) {
 }
 
 func LoadJobs() ([]JobRequest, error) {
-	data, err := os.ReadFile(logFilePath)
+	var jobs []JobRequest
+	rows, err := database.Db.Query("SELECT id, name, type, cron_expr, lambda_arn, command, retries, created_at FROM jobs")
 	if err != nil {
+		logs.LogAndPrint(err.Error())
 		return nil, err
 	}
-	var jobs []JobRequest
-	err = json.Unmarshal(data, &jobs)
+	defer rows.Close()
+
+	for rows.Next() {
+		var job JobRequest
+		err := rows.Scan(&job.ID, &job.Name, &job.Type, &job.CronExpr, &job.LambdaArn, &job.Command, &job.Retries, &job.CreatedAt)
+		if err != nil {
+			logs.LogAndPrint(err.Error())
+			return nil, err
+		}
+		jobs = append(jobs, job)
+	}
 	Jobs = jobs
 	return jobs, err
 }
 
-func SaveJobs(job JobRequest) error {
-	jobs, err := LoadJobs()
-	if err != nil {
-		jobs = []JobRequest{}
-	}
+func SaveJobs(job JobRequest) (uuid.UUID, error) {
 	// Check if the job already exists
-	for _, j := range jobs {
+	for _, j := range Jobs {
 		if j.Name == job.Name {
 			log.Println("[SAVE] Job with same name already exists:", job.Name)
-			return nil // Don't save duplicate
+			return uuid.Nil, nil // Don't save duplicate
 		}
 	}
 
-	jobs = append(jobs, job)
-	Jobs = jobs
-	data, _ := json.MarshalIndent(jobs, "", "  ")
-	logs.LogAndPrint("Jobs are being saved")
-	return os.WriteFile(logFilePath, data, 0644)
+	Jobs = append(Jobs, job)
+
+	if _, err := database.Db.Exec(`INSERT INTO jobs (name, type, cron_expr, lambda_arn, command, retries, created_at) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7)`, job.Name, job.Type, job.CronExpr, job.LambdaArn,
+		job.Command, job.Retries, time.Now()); err != nil {
+		logs.LogAndPrint("Error saving to database: %v\n", err.Error())
+		return uuid.Nil, err
+	}
+
+	var id uuid.UUID
+
+	row := database.Db.QueryRow(`SELECT id FROM jobs WHERE name = $1`, job.Name)
+	if err := row.Scan(&id); err != nil {
+		logs.LogAndPrint("Error retrieving job ID: %v", err.Error())
+		return uuid.Nil, err
+	}
+
+	return id, nil
+}
+
+func UpdateJobData(job JobRequest) error {
+	if _, err := database.Db.Exec(`UPDATE jobs 
+	SET cron_expr = $1, lambda_arn = $2, command = $3, type = $4, retries = $5, created_at = $6
+	WHERE name = $7`, job.CronExpr, job.LambdaArn, job.Command, job.Type, job.Retries, job.CreatedAt, job.Name); err != nil {
+		logs.LogAndPrint("Error updating job data of %s: %v\n", job.Name, err)
+		return err
+	}
+	return nil
 }
 
 func DeleteFromJobsData(jobname string) error {
-	jobsList, err := LoadJobs()
-	if err != nil {
-		return err
-	}
+	var newjobs []JobRequest
+	found := false
 
-	newList := make([]JobRequest, 0)
-	for _, job := range jobsList {
-		if job.Name != jobname {
-			newList = append(newList, job)
+	for _, job := range Jobs {
+		if job.Name == jobname {
+			// Delete from DB
+			if _, err := database.Db.Exec(`DELETE FROM jobs WHERE name = $1`, jobname); err != nil {
+				logs.LogAndPrint("Not able to delete job %v, Error %v\n", jobname, err)
+				return err
+			}
+			logs.LogAndPrint("Successfully deleted job %v\n", jobname)
+			found = true
+			continue // Skip adding this job to newjobs
 		}
+		newjobs = append(newjobs, job)
 	}
 
-	Jobs = newList
-	data, err := json.MarshalIndent(newList, "", "  ")
-	if err != nil {
-		return err
+	if found {
+		Jobs = newjobs // update only if deleted
+		return nil
 	}
-
-	return os.WriteFile(logFilePath, data, 0644)
+	return fmt.Errorf("no job with the name '%s' exists", jobname)
 }

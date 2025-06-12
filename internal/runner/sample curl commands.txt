@@ -1,8 +1,8 @@
 curl --json '{
   "name": "test-job-34",
-  "cron_expr": "@every 30s",
+  "cron_expr": "@every 3s",
   "type": "shell",
-  "command": "python3 /Users/uppuluridivyanthsatya/Desktop/Go/go-job-scheduler/cmd/script.py",
+  "command": "python3 /Users/uppuluridivyanthsatya/Desktop/Go/go-job-scheduler/cmd/lambda_job/lambda_function.py",
   "retries": 0
 }' http://localhost:3000/jobs/
 
@@ -16,8 +16,8 @@ curl --json '{
 
 
 curl --json '{
-    "name": "ping-health-check",
-    "cron_expr": "@every 2m",
+    "name": "ping-health-check-2",
+    "cron_expr": "@every 5s",
     "type": "shell",
     "command": "ping -c 3 google.com",
     "retries": 2
@@ -25,11 +25,30 @@ curl --json '{
 
 curl -X PUT http://localhost:3000/update/test-job-34 -d '{
     "name": "test-job-34",
-  "cron_expr": "@every 30s",
+  "cron_expr": "@every 3s",
   "type": "shell",
   "command": "python3 /Users/uppuluridivyanthsatya/Desktop/Go/go-job-scheduler/cmd/script.py",
   "retries": 0
   }'
 
+  curl -X PUT http://localhost:3000/update/test-job-323 -d '{
+  "name": "test-job-323",
+  "cron_expr": "@every 2s",
+  "type": "http",
+  "command": "https://google.com/",
+  "retries": 2
+  }'
+
 curl -X POST http://localhost:3000/delete/test-job-34
+curl -X POST http://localhost:3000/delete/test-job-323
+
+curl -X GET http://localhost:3000/job_run/test-job-34
+
+curl --json '{
+  "name": "native-lambda-invoker",
+  "cron_expr": "@every 2s",
+  "type": "lambda",
+  "command": "https://portfolio-ds-nu.vercel.app/",
+  "lambda_arn": "arn:aws:lambda:eu-north-1:156207843960:function:jobExecutor"        
+}' http://localhost:3000/jobs/
 

@@ -1,9 +1,0 @@
-[
-  {
-    "name": "ping-health-check",
-    "cron_expr": "@every 8s",
-    "type": "shell",
-    "command": "ping -c 3 google.com",
-    "retries": 2
-  }
-]

@@ -3,8 +3,6 @@ package scheduler
 import (
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/Divyanth2468/go-job-scheduler/internal/jobs"
 	"github.com/Divyanth2468/go-job-scheduler/internal/logs"
@@ -24,24 +22,6 @@ func Init() {
 	cronScheduler.Start()
 
 	log.Println("[INIT] Cron scheduler started and logging initialized.")
-}
-
-func LogFileSetup() {
-	// Get current directory and move one level up
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal("Unable to get working directory:", err)
-	}
-	parentDir := filepath.Dir(wd)
-	logFilePath := filepath.Join(parentDir, "internal", "logs", "logs.txt")
-
-	// Create/open log file
-	f, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal("Unable to create/open log file:", err)
-	}
-	log.SetOutput(f)
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
 func RegisterJobs(job jobs.JobRequest) error {
@@ -64,7 +44,7 @@ func RegisterJobs(job jobs.JobRequest) error {
 func DeleteJob(jobName string) error {
 	entryId, exists := jobMap[jobName]
 	if !exists {
-		log.Printf("Job with name %s doesn't exist", jobName)
+		log.Printf("Job with name %s doesn't exist\n", jobName)
 		return fmt.Errorf("job with name %s doesn't exist", jobName)
 	}
 	cronScheduler.Remove(entryId)
@@ -77,5 +57,24 @@ func DeleteJob(jobName string) error {
 	}
 
 	logs.LogAndPrint("[DELETE] Job deleted: Name=%s, EntryID=%d\n", jobName, entryId)
+	return nil
+}
+
+func UpdateJob(jobName string, job jobs.JobRequest) error {
+	entryId, exists := jobMap[jobName]
+	if !exists {
+		log.Printf("Job with name %s doesn't exist\n", jobName)
+		return fmt.Errorf("job with name %s doesn't exist", jobName)
+	}
+	cronScheduler.Remove(entryId)
+	delete(jobMap, jobName)
+
+	if err := jobs.UpdateJobData(job); err != nil {
+		return err
+	}
+
+	if err := RegisterJobs(job); err != nil {
+		return err
+	}
 	return nil
 }

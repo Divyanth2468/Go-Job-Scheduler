@@ -1,3 +1,11 @@
 internal/logs/logs.txt
 
 .DS_Store
+
+cmd/lambda_job/*
+
+cmd/script.py
+
+job_scheduler_accessKeys.csv
+
+job_scheduler_credentials.csv
