@@ -5,3 +5,5 @@ cmd/lambda_job/*
 cmd/script.py
 job_scheduler_accessKeys.csv
 job_scheduler_credentials.csv
+job_scheduler-ip.txt
+job_scheduler.pem

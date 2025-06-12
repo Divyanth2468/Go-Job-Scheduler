@@ -99,7 +99,7 @@ func Execute(job jobs.JobRequest) {
 
 			// Invoke Lambda
 			input := &lambda.InvokeInput{
-				FunctionName: aws.String(job.LambdaArn), // Add LambdaARN field in your Job struct
+				FunctionName: aws.String(job.LambdaArn),
 				Payload:      payloadBytes,
 			}
 
@@ -108,6 +108,7 @@ func Execute(job jobs.JobRequest) {
 				logs.LogAndPrint(err.Error())
 				errlambda = err
 			}
+
 			if errlambda == nil {
 				flag = 1
 				logs.LogAndPrint("[LAMBDA] Response: %s", result.Payload)

@@ -26,5 +26,5 @@ func main() {
 	}
 
 	endpoints.Endpoints()
-
+	defer database.Db.Close()
 }

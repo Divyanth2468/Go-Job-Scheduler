@@ -19,7 +19,6 @@ type JobRuns struct {
 }
 
 func SaveJobRuns(jobrun JobRuns) error {
-	logs.LogAndPrint("Saving job runs")
 	if _, err := database.Db.Exec(`INSERT INTO job_runs (job_id, job_name, job_type, status, run_at, log)
   VALUES ($1, $2, $3, $4, $5, $6)`, jobrun.JobID, jobrun.JobName, jobrun.JobType, jobrun.Status, jobrun.RunAt, jobrun.Log); err != nil {
 		return err

@@ -2,7 +2,7 @@ curl --json '{
   "name": "test-job-34",
   "cron_expr": "@every 3s",
   "type": "shell",
-  "command": "python3 /Users/uppuluridivyanthsatya/Desktop/Go/go-job-scheduler/cmd/lambda_job/lambda_function.py",
+  "command": "python3 script.py",
   "retries": 0
 }' http://localhost:3000/jobs/
 
@@ -52,3 +52,18 @@ curl --json '{
   "lambda_arn": "arn:aws:lambda:eu-north-1:156207843960:function:jobExecutor"        
 }' http://localhost:3000/jobs/
 
+curl --json '{
+   "name": "native-lambda-invoker",
+  "cron_expr": "@every 2s",
+  "type": "lambda",
+  "command": "https://portfolio-ds-nu.vercel.app/",
+  "lambda_arn": "arn:aws:lambda:eu-north-1:156207843960:function:jobExecutor" 
+}' http://<Public ip of EC2>/jobs/
+
+curl --json '{
+    "name": "test-job-34",
+  "cron_expr": "@every 5s",
+  "type": "shell",
+  "command": "python3 go-job-scheduler/cmd/script.py",
+  "retries": 0
+}' http://<Public ip of EC2>/jobs/

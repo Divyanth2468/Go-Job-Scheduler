@@ -13,6 +13,7 @@ func LogFileSetup() {
 	if err != nil {
 		log.Fatal("Unable to get working directory:", err)
 	}
+
 	parentDir := filepath.Dir(wd)
 	logFilePath := filepath.Join(parentDir, "internal", "logs", "logs.txt")
 

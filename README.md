@@ -86,4 +86,14 @@ Once the scheduler is running (typically on port `3000`), you can interact with 
 - **Lambda jobs** need a valid AWS Lambda ARN and a JSON-formatted command as their payload.
 - **Sample commands** are available in runner folder
 
+## ☁️ Deployment
+
+The scheduler is deployed on an AWS EC2 instance with PostgreSQL hosted on AWS RDS and optional AWS Lambda integration.
+
+- **EC2**: Hosts the Go server
+- **RDS**: Stores persistent job and job_run data
+- **Lambda**: Allows serverless job execution via ARN
+
+Make sure the EC2 instance has IAM role access or AWS credentials are saved in **EC2** instance to invoke Lambda.
+
 ---

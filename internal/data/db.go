@@ -14,7 +14,7 @@ var Db *sql.DB
 func Init() {
 	logs.LogFileSetup()
 	dbName := "postgres"
-	password := "password" //os.Getenv("Password")
+	password := "password"
 	connStr := fmt.Sprintf("postgres://postgres:%s@localhost/%s?sslmode=disable", password, dbName)
 
 	db, err := sql.Open("postgres", connStr)
