@@ -96,12 +96,12 @@ func LoadJobs() ([]JobRequest, error) {
 	return jobs, err
 }
 
-func SaveJobs(job JobRequest) (uuid.UUID, error) {
+func SaveJobs(job JobRequest) error {
 	// Check if the job already exists
 	for _, j := range Jobs {
 		if j.Name == job.Name {
 			log.Println("[SAVE] Job with same name already exists:", job.Name)
-			return uuid.Nil, nil // Don't save duplicate
+			return nil // Don't save duplicate
 		}
 	}
 
@@ -111,17 +111,20 @@ func SaveJobs(job JobRequest) (uuid.UUID, error) {
 	VALUES ($1, $2, $3, $4, $5, $6, $7)`, job.Name, job.Type, job.CronExpr, job.LambdaArn,
 		job.Command, job.Retries, time.Now()); err != nil {
 		logs.LogAndPrint("Error saving to database: %v\n", err.Error())
-		return uuid.Nil, err
+		return err
 	}
 
+	return nil
+}
+
+func GetJobID(name string) (uuid.UUID, error) {
 	var id uuid.UUID
 
-	row := database.Db.QueryRow(`SELECT id FROM jobs WHERE name = $1`, job.Name)
+	row := database.Db.QueryRow(`SELECT id FROM jobs WHERE name = $1`, name)
 	if err := row.Scan(&id); err != nil {
 		logs.LogAndPrint("Error retrieving job ID: %v", err.Error())
 		return uuid.Nil, err
 	}
-
 	return id, nil
 }
 
@@ -141,12 +144,22 @@ func DeleteFromJobsData(jobname string) error {
 
 	for _, job := range Jobs {
 		if job.Name == jobname {
-			// Delete from DB
+			// First, delete from job_runs using job_id
+			_, err := database.Db.Exec(`
+				DELETE FROM job_runs 
+				WHERE job_id = (SELECT id FROM jobs WHERE name = $1)`, jobname)
+			if err != nil {
+				logs.LogAndPrint("Failed to delete job_runs for job %v: %v\n", jobname, err)
+				return err
+			}
+
+			// Then, delete from jobs
 			if _, err := database.Db.Exec(`DELETE FROM jobs WHERE name = $1`, jobname); err != nil {
 				logs.LogAndPrint("Not able to delete job %v, Error %v\n", jobname, err)
 				return err
 			}
-			logs.LogAndPrint("Successfully deleted job %v\n", jobname)
+
+			logs.LogAndPrint("Successfully deleted job %v and its job_runs\n", jobname)
 			found = true
 			continue // Skip adding this job to newjobs
 		}

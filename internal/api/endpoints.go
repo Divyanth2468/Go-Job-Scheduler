@@ -15,7 +15,7 @@ import (
 )
 
 var cronParser = cron.NewParser(
-	cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
+	cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
 )
 
 func Endpoints() {
@@ -72,13 +72,11 @@ func Endpoints() {
 
 		Validation(w, r, jobdata)
 		jobdata.Retries += 1
-		id, err := jobs.SaveJobs(jobdata)
+		err = jobs.SaveJobs(jobdata)
 		if err != nil {
 			logs.LogAndPrint(err.Error())
 			http.Error(w, "Internal Server error", http.StatusInternalServerError)
 		}
-
-		jobdata.ID = id
 
 		if err := scheduler.RegisterJobs(jobdata); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

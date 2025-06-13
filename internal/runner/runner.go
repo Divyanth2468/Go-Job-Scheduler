@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/google/uuid"
 )
 
 func Execute(job jobs.JobRequest) {
@@ -126,8 +127,13 @@ func Execute(job jobs.JobRequest) {
 			op = res_payload
 		}
 	}
+	var id uuid.UUID
+	id, err := jobs.GetJobID(job.Name)
+	if err != nil {
+		logs.LogAndPrint("Error writing to job_runs %v\n", err)
+	}
 	if jobrunerr := jobs.SaveJobRuns(jobs.JobRuns{
-		JobID:   job.ID,
+		JobID:   id,
 		JobName: job.Name,
 		JobType: job.Type,
 		Status:  status,
