@@ -102,7 +102,7 @@ Make sure the EC2 instance has an IAM role attached or AWS credentials configure
 
 ## 📬 Real-World Example
 
-I'm using the **Go Job Scheduler** to automatically trigger a personal AWS Lambda function every morning. This Lambda function generates a **random fantasy story** and sends it to my email inbox (`uppuluridivyanth@gmail.com`). The job runs daily at **8:30 AM IST**, and a second schedule runs it again at **1:05 PM IST** as a backup.
+I'm using the **Go Job Scheduler** to automatically trigger a personal AWS Lambda function every morning. This Lambda function generates a **random fantasy story** and sends it to my email inbox (`uppuluridivyanth@gmail.com`). The job runs daily at **8:30 AM IST**.
 
 This showcases how you can use this scheduler to combine serverless execution with creative automation workflows.
 
