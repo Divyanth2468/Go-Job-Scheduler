@@ -63,7 +63,7 @@ func Endpoints() {
 		logs.LogAndPrint("Job %s not found\n", jobName)
 	})
 
-	r.Post("/jobs/", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/jobs", func(w http.ResponseWriter, r *http.Request) {
 		jobdata, err := jobs.GetJobs(w, r)
 		if err != nil {
 			logs.LogAndPrint(err.Error())

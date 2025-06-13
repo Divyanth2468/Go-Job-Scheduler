@@ -88,7 +88,7 @@ func Execute(job jobs.JobRequest) {
 
 			// Prepare the payload
 			payload := map[string]string{
-				"url": job.Command, // Command holds the URL or whatever you want to send
+				"email": job.Command,
 			}
 
 			payloadBytes, err := json.Marshal(payload)

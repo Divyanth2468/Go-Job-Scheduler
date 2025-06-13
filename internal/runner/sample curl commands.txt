@@ -53,12 +53,12 @@ curl --json '{
 }' http://localhost:3000/jobs/
 
 curl --json '{
-   "name": "native-lambda-invoker",
-  "cron_expr": "@every 2s",
+  "name": "native-lambda-invoker",
+  "cron_expr": "@every 10s",
   "type": "lambda",
-  "command": "https://portfolio-ds-nu.vercel.app/",
+  "command": "uppuluridivyanth@gmail.com",
   "lambda_arn": "arn:aws:lambda:eu-north-1:156207843960:function:jobExecutor" 
-}' http://<Public ip of EC2>/jobs/
+}' http://<Public ip ofEC2>/jobs/
 
 curl --json '{
     "name": "test-job-34",
