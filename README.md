@@ -84,7 +84,9 @@ Once the scheduler is running (typically on port `3000`), you can interact with 
 - **Shell jobs** execute within the host operating system environment where the scheduler is running.
 - **HTTP jobs** require a reachable URL.
 - **Lambda jobs** need a valid AWS Lambda ARN and a JSON-formatted command as their payload.
-- **Sample commands** are available in runner folder
+- **Sample commands** are available in the `runner` folder.
+
+---
 
 ## ☁️ Deployment
 
@@ -94,6 +96,14 @@ The scheduler is deployed on an AWS EC2 instance with PostgreSQL hosted on AWS R
 - **RDS**: Stores persistent job and job_run data
 - **Lambda**: Allows serverless job execution via ARN
 
-Make sure the EC2 instance has IAM role access or AWS credentials are saved in **EC2** instance to invoke Lambda.
+Make sure the EC2 instance has an IAM role attached or AWS credentials configured to allow Lambda invocation.
+
+---
+
+## 📬 Real-World Example
+
+I'm using the **Go Job Scheduler** to automatically trigger a personal AWS Lambda function every morning. This Lambda function generates a **random fantasy story** and sends it to my email inbox (`uppuluridivyanth@gmail.com`). The job runs daily at **8:30 AM IST**, and a second schedule runs it again at **1:05 PM IST** as a backup.
+
+This showcases how you can use this scheduler to combine serverless execution with creative automation workflows.
 
 ---
